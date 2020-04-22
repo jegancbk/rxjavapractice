@@ -13,7 +13,7 @@ import io.reactivex.schedulers.Schedulers;
 public class MainActivity extends AppCompatActivity {
 
     private final static String TAG = "myApp";
-    private String greeting = "Hello From RxJava";
+    private String[] greetings = {"Hello", "Howdy", "Whats up"};
     private Observable<String> myObservable;
     private DisposableObserver<String> myObserver;
 
@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        myObservable = Observable.just(greeting);
+        myObservable = Observable.just("Hello", "Howdy", "Whats up");
 
         compositeDisposable.add(
                 myObservable
