@@ -14,9 +14,9 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 public class MainActivity extends AppCompatActivity {
 
     private final static String TAG = "myApp";
-    private String[] greetings = {"Hello", "Howdy", "Whats up"};
-    private Observable<String> myObservable;
-    private DisposableObserver<String> myObserver;
+    private Integer[] nums = {1, 2, 3, 4, 5};
+    private Observable<Integer> myObservable;
+    private DisposableObserver<Integer> myObserver;
 
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
     @Override
@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        myObservable = Observable.fromArray(greetings);
+        myObservable = Observable.range(1, 20);
 
         compositeDisposable.add(
                 myObservable
@@ -36,13 +36,13 @@ public class MainActivity extends AppCompatActivity {
 
     private DisposableObserver getObserver(){
 
-        myObserver = new DisposableObserver<String>() {
+        myObserver = new DisposableObserver<Integer>() {
             @Override
-            public void onNext(String s) {
+            public void onNext(Integer s) {
 
 
                 Log.i(TAG, " onNext invoked "+s);
-                Toast.makeText(getApplicationContext(), s, Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), s.toString(), Toast.LENGTH_SHORT).show();
 
             }
 
