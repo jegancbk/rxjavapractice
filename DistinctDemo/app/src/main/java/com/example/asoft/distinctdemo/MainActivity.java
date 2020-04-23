@@ -24,8 +24,9 @@ public class MainActivity extends AppCompatActivity {
         numbersObservable
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .distinct()
-                .skip(4)
+                //.distinct()
+                //.skip(4)
+                .skipLast(4)
                 .subscribe(new Observer<Integer>() {
                     @Override
                     public void onSubscribe(Disposable d) {
