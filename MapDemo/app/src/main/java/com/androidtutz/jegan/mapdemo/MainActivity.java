@@ -1,7 +1,7 @@
-package com.androidtutz.jegan.createdemo;
+package com.androidtutz.jegan.mapdemo;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -12,6 +12,7 @@ import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.Function;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 
@@ -32,22 +33,55 @@ public class MainActivity extends AppCompatActivity {
         myObservable = Observable.create(new ObservableOnSubscribe<Student>() {
             @Override
             public void subscribe(ObservableEmitter<Student> emitter) throws Exception {
+
+
                 ArrayList<Student> studentArrayList = getStudents();
 
-                for(Student student: studentArrayList){
+                for (Student student : studentArrayList) {
+
+
                     emitter.onNext(student);
+
                 }
 
                 emitter.onComplete();
+
+
             }
         });
 
         compositeDisposable.add(
+
                 myObservable
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
+                        /*.map(new Function<Student, Student>() {
+
+                            @Override
+                            public Student apply(Student student) throws Exception {
+                                student.setName(student.getName().toUpperCase());
+                                return student;
+                            }
+                        })*/
+                        .flatMap(new Function<Student, Observable<Student>>() {
+                            @Override
+                            public Observable<Student> apply(Student student) throws Exception {
+
+                                Student student1 = new Student();
+                                student1.setName(student.getName());
+
+                                Student student2 = new Student();
+                                student2.setName("New Member: " + student.getName());
+
+                                student.setName(student.getName().toUpperCase());
+                                return Observable.just(student, student1, student2);
+                            }
+                        })
                         .subscribeWith(getObserver())
+
         );
+
+
     }
 
 
@@ -58,9 +92,11 @@ public class MainActivity extends AppCompatActivity {
             public void onNext(Student s) {
 
 
-                Log.i(TAG, " onNext invoked with " + s.getEmail());
+                Log.i(TAG,  s.getName());
 
-                Toast.makeText(getApplicationContext(), s.getEmail(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), s.getName(), Toast.LENGTH_SHORT).show();
+
+
             }
 
             @Override
