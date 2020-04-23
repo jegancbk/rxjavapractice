@@ -63,7 +63,21 @@ public class MainActivity extends AppCompatActivity {
                                 return student;
                             }
                         })*/
-                        .flatMap(new Function<Student, Observable<Student>>() {
+                        /*.flatMap(new Function<Student, Observable<Student>>() {
+                            @Override
+                            public Observable<Student> apply(Student student) throws Exception {
+
+                                Student student1 = new Student();
+                                student1.setName(student.getName());
+
+                                Student student2 = new Student();
+                                student2.setName("New Member: " + student.getName());
+
+                                student.setName(student.getName().toUpperCase());
+                                return Observable.just(student, student1, student2);
+                            }
+                        })*/
+                        .concatMap(new Function<Student, Observable<Student>>() {
                             @Override
                             public Observable<Student> apply(Student student) throws Exception {
 
