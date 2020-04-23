@@ -1,2 +1,2 @@
-rootProject.name='From Array Demo'
+rootProject.name='Range Demo'
 include ':app'
