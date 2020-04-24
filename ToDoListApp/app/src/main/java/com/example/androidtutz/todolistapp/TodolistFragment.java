@@ -19,9 +19,12 @@ import com.example.androidtutz.todolistapp.adapter.ToDoListAdapter;
 import com.example.androidtutz.todolistapp.data.ToDoDataManager;
 import com.example.androidtutz.todolistapp.data.ToDoListItem;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.jakewharton.rxbinding3.widget.RxTextView;
+import com.jakewharton.rxbinding3.widget.TextViewTextChangeEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -29,14 +32,14 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.annotations.NonNull;
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import io.reactivex.rxjava3.functions.Function;
-import io.reactivex.rxjava3.functions.Predicate;
-import io.reactivex.rxjava3.observers.DisposableObserver;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
+import io.reactivex.observers.DisposableObserver;
+import io.reactivex.schedulers.Schedulers;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -161,6 +164,33 @@ public class TodolistFragment extends Fragment {
         });
 
 
+        disposable.add(
+                RxTextView.textChangeEvents(searchEditText)
+                        .skipInitialValue()
+                        .debounce(300, TimeUnit.MICROSECONDS)
+                        .distinctUntilChanged()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribeWith(new DisposableObserver<TextViewTextChangeEvent>() {
+                            @Override
+                            public void onNext(TextViewTextChangeEvent textViewTextChangeEvent) {
+
+                                goalAdapter.getFilter().filter(textViewTextChangeEvent.getText());
+                            }
+
+                            @Override
+                            public void onError(Throwable e) {
+
+                            }
+
+                            @Override
+                            public void onComplete() {
+
+                            }
+                        })
+        );
+
+
         setRecyclerView();
         loadData();
 
@@ -245,13 +275,13 @@ public class TodolistFragment extends Fragment {
                 .observeOn(AndroidSchedulers.mainThread())
                 .filter(new Predicate<ToDoListItem>() {
                     @Override
-                    public boolean test(ToDoListItem toDoListItem) throws Throwable {
+                    public boolean test(ToDoListItem toDoListItem) {
                         return toDoListItem.getToDoListItemStatus().equals(taskStatus);
                     }
                 })
                 .map(new Function<ToDoListItem, ToDoListItem>() {
                     @Override
-                    public ToDoListItem apply(ToDoListItem toDoListItem) throws Throwable {
+                    public ToDoListItem apply(ToDoListItem toDoListItem) {
                         toDoListItem.setToDoListItemDescription(
                                 dateFront + " " + toDoListItem.getToDoListItemPlanedAchievDate()
                         );
