@@ -10,6 +10,9 @@ import io.reactivex.rxjava3.core.Observer;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.reactivex.rxjava3.subjects.AsyncSubject;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
+import io.reactivex.rxjava3.subjects.PublishSubject;
+import io.reactivex.rxjava3.subjects.ReplaySubject;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -20,7 +23,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        asyncSubjectDemo1();
+        //asyncSubjectDemo1();
+        //asyncSubjectDemo2();
+        //behaviorSubjectDemo1();
+        //behaviorSubjectDemo2();
+        //publishSubjectDemo1();
+        //publishSubjectDemo2();
+        //replaySubjectDemo1();
+        replaySubjectDemo2();
+
 
 
     }
@@ -37,6 +48,125 @@ public class MainActivity extends AppCompatActivity {
         asyncSubject.subscribe(getThirdObserver());
 
     }
+
+    void asyncSubjectDemo2() {
+
+        AsyncSubject<String> asyncSubject = AsyncSubject.create();
+
+        asyncSubject.subscribe(getFirstObserver());
+
+        asyncSubject.onNext("Java");
+        asyncSubject.onNext("Kotlin");
+        asyncSubject.onNext("Javascript");
+        asyncSubject.subscribe(getSecondObserver());
+        asyncSubject.onNext("Html");
+        asyncSubject.onComplete();
+        asyncSubject.subscribe(getThirdObserver());
+
+    }
+
+    void behaviorSubjectDemo1() {
+        Observable<String> observable = Observable.just("Java", "Kotlin", "Javascript", "HTML")
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+
+        BehaviorSubject<String> behaviorSubject= BehaviorSubject.create();
+        observable.subscribe(behaviorSubject);
+
+        behaviorSubject.subscribe(getFirstObserver());
+        behaviorSubject.subscribe(getSecondObserver());
+        behaviorSubject.subscribe(getThirdObserver());
+
+    }
+
+    void behaviorSubjectDemo2() {
+
+
+        BehaviorSubject<String> behaviorSubject= BehaviorSubject.create();
+
+        behaviorSubject.subscribe(getFirstObserver());
+
+        behaviorSubject.onNext("Java");
+        behaviorSubject.onNext("Kotlin");
+        behaviorSubject.onNext("Javascript");
+
+        behaviorSubject.subscribe(getSecondObserver());
+
+        behaviorSubject.onNext("Html");
+        behaviorSubject.onComplete();
+
+        behaviorSubject.subscribe(getThirdObserver());
+
+    }
+
+    void publishSubjectDemo1() {
+        Observable<String> observable = Observable.just("Java", "Kotlin", "Javascript", "HTML")
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+
+        PublishSubject<String> publishSubject= PublishSubject.create();
+        observable.subscribe(publishSubject);
+
+        publishSubject.subscribe(getFirstObserver());
+        publishSubject.subscribe(getSecondObserver());
+        publishSubject.subscribe(getThirdObserver());
+
+    }
+
+    void publishSubjectDemo2() {
+
+
+        PublishSubject<String> publishSubject= PublishSubject.create();
+
+        publishSubject.subscribe(getFirstObserver());
+
+        publishSubject.onNext("Java");
+        publishSubject.onNext("Kotlin");
+        publishSubject.onNext("Javascript");
+
+        publishSubject.subscribe(getSecondObserver());
+
+        publishSubject.onNext("Html");
+        publishSubject.onComplete();
+
+        publishSubject.subscribe(getThirdObserver());
+
+    }
+
+    void replaySubjectDemo1() {
+        Observable<String> observable = Observable.just("Java", "Kotlin", "Javascript", "HTML")
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+
+        ReplaySubject<String> replaySubject= ReplaySubject.create();
+        observable.subscribe(replaySubject);
+
+        replaySubject.subscribe(getFirstObserver());
+        replaySubject.subscribe(getSecondObserver());
+        replaySubject.subscribe(getThirdObserver());
+
+    }
+
+    void replaySubjectDemo2() {
+
+
+        ReplaySubject<String> replaySubject= ReplaySubject.create();
+
+        replaySubject.subscribe(getFirstObserver());
+
+        replaySubject.onNext("Java");
+        replaySubject.onNext("Kotlin");
+        replaySubject.onNext("Javascript");
+
+        replaySubject.subscribe(getSecondObserver());
+
+        replaySubject.onNext("Html");
+        replaySubject.onComplete();
+
+        replaySubject.subscribe(getThirdObserver());
+
+    }
+
 
     private Observer<String> getFirstObserver() {
 
