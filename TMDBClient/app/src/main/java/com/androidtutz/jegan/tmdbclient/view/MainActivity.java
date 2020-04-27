@@ -17,6 +17,13 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
+import io.reactivex.observers.DisposableObserver;
+import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -28,6 +35,11 @@ public class MainActivity extends AppCompatActivity {
     private MovieAdapter movieAdapter;
     private SwipeRefreshLayout swipeRefreshLayout;
 
+    private Call<MovieDBResponse> call;
+    private Observable<MovieDBResponse> movieDBResponseObservable;
+
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
 
         getSupportActionBar().setTitle("TMDB Popular Movies Today");
 
-        getPopularMovies();
+        getPopularMoviesRx();
 
 
         swipeRefreshLayout = findViewById(R.id.swipe_layout);
@@ -44,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onRefresh() {
 
-                getPopularMovies();
+                getPopularMoviesRx();
 
             }
         });
@@ -55,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
 
         MovieDataService movieDataService = RetrofitInstance.getService();
 
-        Call<MovieDBResponse> call = movieDataService.getPopularMovies(this.getString(R.string.api_key));
+        call = movieDataService.getPopularMovies(this.getString(R.string.api_key));
 
         call.enqueue(new Callback<MovieDBResponse>() {
             @Override
@@ -84,6 +96,49 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void getPopularMoviesRx() {
+
+        movies = new ArrayList<>();
+        MovieDataService movieDataService = RetrofitInstance.getService();
+
+        movieDBResponseObservable = movieDataService.getPopularMoviesWithRx(this.getString(R.string.api_key));
+
+        compositeDisposable.add(movieDBResponseObservable
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .flatMap(new Function<MovieDBResponse, Observable<Movie>>() {
+                    @Override
+                    public Observable<Movie> apply(MovieDBResponse movieDBResponse) throws Exception {
+                        return Observable.fromArray(movieDBResponse.getMovies().toArray(new Movie[0]));
+                    }
+                })
+                .filter(new Predicate<Movie>() {
+                    @Override
+                    public boolean test(Movie movie) throws Exception {
+                        return movie.getVoteAverage() > 7;
+                    }
+                })
+                .subscribeWith(new DisposableObserver<Movie>() {
+                    @Override
+                    public void onNext(Movie movie) {
+                        movies.add(movie);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        showOnRecyclerView();
+                    }
+                }));
+
+
+
+    }
+
     private void showOnRecyclerView() {
 
         recyclerView = (RecyclerView) findViewById(R.id.rvMovies);
@@ -104,5 +159,17 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setAdapter(movieAdapter);
         movieAdapter.notifyDataSetChanged();
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        compositeDisposable.clear();
+        /*if (call != null) {
+            if (call.isExecuted()) {
+                call.cancel();
+            }
+        }*/
     }
 }
