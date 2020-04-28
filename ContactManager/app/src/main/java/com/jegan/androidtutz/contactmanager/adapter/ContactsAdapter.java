@@ -1,18 +1,18 @@
 package com.jegan.androidtutz.contactmanager.adapter;
 
 import android.content.Context;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
 
 import com.jegan.androidtutz.contactmanager.MainActivity;
 import com.jegan.androidtutz.contactmanager.R;
 import com.jegan.androidtutz.contactmanager.db.entity.Contact;
 
 import java.util.ArrayList;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 
 public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.MyViewHolder> {
