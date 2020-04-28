@@ -4,41 +4,29 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 
 import com.androidtutz.jegan.tmdbclient.R;
+import com.androidtutz.jegan.tmdbclient.ViewModel.MainActivityViewModel;
 import com.androidtutz.jegan.tmdbclient.adapter.MovieAdapter;
 import com.androidtutz.jegan.tmdbclient.model.Movie;
-import com.androidtutz.jegan.tmdbclient.model.MovieDBResponse;
-import com.androidtutz.jegan.tmdbclient.service.MovieDataService;
-import com.androidtutz.jegan.tmdbclient.service.RetrofitInstance;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import io.reactivex.Observable;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.functions.Function;
-import io.reactivex.functions.Predicate;
-import io.reactivex.observers.DisposableObserver;
-import io.reactivex.schedulers.Schedulers;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
-    private ArrayList<Movie> movies;
+    private ArrayList<Movie> movies = new ArrayList<>();
     private RecyclerView recyclerView;
     private MovieAdapter movieAdapter;
     private SwipeRefreshLayout swipeRefreshLayout;
 
-    private Call<MovieDBResponse> call;
-    private Observable<MovieDBResponse> movieDBResponseObservable;
-
-    private CompositeDisposable compositeDisposable = new CompositeDisposable();
+    private MainActivityViewModel mainActivityViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
 
         getSupportActionBar().setTitle("TMDB Popular Movies Today");
 
+        mainActivityViewModel = ViewModelProviders.of(this).get(MainActivityViewModel.class);
         getPopularMoviesRx();
 
 
@@ -63,78 +52,16 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void getPopularMovies() {
+    public void getPopularMoviesRx() {
 
-        MovieDataService movieDataService = RetrofitInstance.getService();
-
-        call = movieDataService.getPopularMovies(this.getString(R.string.api_key));
-
-        call.enqueue(new Callback<MovieDBResponse>() {
+        mainActivityViewModel.getAllMovies().observe(this, new Observer<List<Movie>>() {
             @Override
-            public void onResponse(Call<MovieDBResponse> call, Response<MovieDBResponse> response) {
-
-                MovieDBResponse movieDBResponse = response.body();
-
-
-                if (movieDBResponse != null && movieDBResponse.getMovies() != null) {
-
-
-                    movies = (ArrayList<Movie>) movieDBResponse.getMovies();
-                    showOnRecyclerView();
-
-
-                }
-
-
-            }
-
-            @Override
-            public void onFailure(Call<MovieDBResponse> call, Throwable t) {
+            public void onChanged(List<Movie> moviesList) {
+                movies = (ArrayList<Movie>) moviesList;
+                showOnRecyclerView();
 
             }
         });
-
-    }
-
-    public void getPopularMoviesRx() {
-
-        movies = new ArrayList<>();
-        MovieDataService movieDataService = RetrofitInstance.getService();
-
-        movieDBResponseObservable = movieDataService.getPopularMoviesWithRx(this.getString(R.string.api_key));
-
-        compositeDisposable.add(movieDBResponseObservable
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .flatMap(new Function<MovieDBResponse, Observable<Movie>>() {
-                    @Override
-                    public Observable<Movie> apply(MovieDBResponse movieDBResponse) throws Exception {
-                        return Observable.fromArray(movieDBResponse.getMovies().toArray(new Movie[0]));
-                    }
-                })
-                .filter(new Predicate<Movie>() {
-                    @Override
-                    public boolean test(Movie movie) throws Exception {
-                        return movie.getVoteAverage() > 7;
-                    }
-                })
-                .subscribeWith(new DisposableObserver<Movie>() {
-                    @Override
-                    public void onNext(Movie movie) {
-                        movies.add(movie);
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        showOnRecyclerView();
-                    }
-                }));
-
 
 
     }
@@ -165,7 +92,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        compositeDisposable.clear();
+        mainActivityViewModel.clear();
+        //compositeDisposable.clear();
         /*if (call != null) {
             if (call.isExecuted()) {
                 call.cancel();
