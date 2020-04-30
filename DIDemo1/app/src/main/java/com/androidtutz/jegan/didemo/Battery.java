@@ -1,7 +1,6 @@
 package com.androidtutz.jegan.didemo;
 
-public class Battery {
+public interface Battery {
 
-    public Battery() {
-    }
+    void showType();
 }
