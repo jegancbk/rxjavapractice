@@ -23,8 +23,8 @@ public interface ContactDAO {
     @Delete
     public void deleteContact(Contact contact);
 
-    /*@Query("select * from contacts")
-    public List<Contact> getContacts();*/
+    @Query("select * from contacts")
+    public List<Contact> getContactsList();
 
     @Query("select * from contacts")
     Flowable<List<Contact>> getContacts();

@@ -1,6 +1,7 @@
 package com.jegan.androidtutz.contactmanager;
 
 import android.content.DialogInterface;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -211,5 +212,90 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         contactViewModel.clear();
+    }
+
+    private class GetAllContactsAsyncTask extends AsyncTask<Void,Void,Void>{
+
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+            contactArrayList.addAll(contactsAppDatabase.getContactDAO().getContactsList());
+            return null;
+        }
+
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            contactsAdapter.notifyDataSetChanged();
+        }
+    }
+
+
+    private class CreateContactAsyncTask extends AsyncTask<Contact,Void,Void>{
+
+
+
+        @Override
+        protected Void doInBackground(Contact... contacts) {
+
+            long id = contactsAppDatabase.getContactDAO().addContact(contacts[0]);
+
+
+            Contact contact = contactsAppDatabase.getContactDAO().getContact(id);
+
+            if (contact != null) {
+
+                contactArrayList.add(0, contact);
+
+
+            }
+
+            return null;
+        }
+
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            contactsAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private class UpdateContactAsyncTask extends AsyncTask<Contact,Void,Void>{
+
+
+        @Override
+        protected Void doInBackground(Contact... contacts) {
+
+            contactsAppDatabase.getContactDAO().updateContact(contacts[0]);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            contactsAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private class DeleteContactAsyncTask extends AsyncTask<Contact,Void,Void> {
+
+        @Override
+        protected Void doInBackground(Contact... contacts) {
+
+            contactsAppDatabase.getContactDAO().deleteContact(contacts[0]);
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            contactsAdapter.notifyDataSetChanged();
+        }
     }
 }
